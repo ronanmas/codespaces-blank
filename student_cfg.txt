@@ -1,0 +1,10 @@
+S -> NP VP
+VP -> V NP PP | V NP | V N | V Nom
+NP -> "Jane" | "Tom" | "Joe" | "Mary" | "Bob" | Det N
+PP -> P Det Nom
+Nom -> ADJ N
+P -> "in" | "to"
+Det -> "a" | "the"
+N -> "course" | "courses" | "class" | "Mathematics" | "English" | "Spanish" | "History" | "Science" | "boy" | "girl" | "student"
+V -> "likes" | "dislikes" | "is"
+ADJ -> "python" | "math" | "history" | "english"
