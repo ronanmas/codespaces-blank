@@ -64,7 +64,7 @@ def state_abbrev(input):
     for key,value in states.items():
         if value.lower() == input.lower():
             return key
-    return None
+    return input
 
 def city_fix(input):
     if " " in input:
@@ -73,7 +73,6 @@ def city_fix(input):
             return city.lower()
     else:
         return input.lower()
-    return None
 
 def get_coords(city, state):
     url = f'https://www.wunderground.com/weather/us/{state}/{city.lower()}'
@@ -85,97 +84,29 @@ def get_coords(city, state):
 
     name_box = web.find('span', class_ = 'subheading')
     name = name_box.text.split() 
-    # print(name)
 
     for item in name:
-        # print(item)
         if "°N" in item:
             lat = float(name[3])
         elif "°S" in item:
             lat = float(name[3])
             lat = lat * (-1)
         elif "°W" in item:
-            long = float(name[5])
-            long = long * (-1)
+            lon = float(name[5])
+            lon = lon * (-1)
         elif "°E" in item:
-            long = float(name[5])
+            lon = float(name[5])
     # print(lat)
     # print(long)
 
    
-    return lat, long
+    return lat, lon
 
-# Using Webscraping
-def condition_simple(city,state,type,class_,dict_name):
-    url = f'https://www.wunderground.com/weather/us/{state}/{city.lower()}'
-    req = requests.get(url)
-    web_page = req.content
-    web = soup(web_page,'html.parser')
-    name_box = web.find(type, class_)
-    name = name_box.text.split() 
-    
-    if dict_name == 'time':
-        dict = {dict_name: name[1:8]}
-    else: 
-        dict = {dict_name: name}
-    return dict
-
-def info(condition, city, state):
-    
-    if condition == "coordinates":
-        condition = get_coords(city,state)
-    elif condition == "time":
-        condition = condition_simple(city,state,'p','timestamp','time')
-    elif condition == "high":
-        condition = condition_simple(city,state,'span','hi','high')
-    elif condition == "low":
-        condition = condition_simple(city,state,'span','lo','low')
-    elif condition == "temperature":
-        next
-        # condition = condition_simple(city,state,'div','cur-temp has-degs temp40 funits','temperature')
-    elif condition == "feels like":
-        condition = condition_simple(city,state,'span','temp','feels like')
-    elif condition == "condition":
-        condition = condition_simple(city,state,'div','condition-icon small-6 medium-12 columns','condition')
-    elif condition == "humidity":
-        condition = condition_simple(city,state,'span','test-false wu-unit wu-unit-humidity ng-star-inserted','humidity')
-    elif condition == "gusts":
-        condition = condition_simple(city,state,'span','test-false wu-unit wu-unit-speed ng-star-inserted','wind gusts')
-    elif condition == "wind speed":
-        condition = condition_simple(city,state,'header','wind-speed','wind speed')
-    return condition
-
-def complete(city,state):
-    city_1 = city_fix(city)
-    state_1 = state_abbrev(state)
-
-
-    dict = {}
-    coords = []
-    time = []
-    high = []
-    low = []
-    temp = []
-    condition = []
-    feels_like = []
-    humidity = []
-    gusts = []
-    wind_speed = []
-
-    coords = info("coordinates", city_1, state_1)
-    time = info('time', city_1, state_1)
-    high = info('high', city_1, state_1)
-    low = info('low', city_1, state_1)
-    temp = info('temperature', city_1, state_1)
-    condition = info('condition', city_1, state_1)
-    feels_like = info('feels like', city_1, state_1)
-    humidity = info('humidity', city_1, state_1)
-    gusts = info('gusts', city_1, state_1)
-    wind_speed = info('wind speed', city_1, state_1)
-    
-    dict = [coords, time, high, low, temp, condition, feels_like, humidity, gusts, wind_speed]
-    return dict
-
+def get_weather(city,state):
+    city = city_fix(city)
+    state = state_abbrev(state)
+    lat, lon = get_coords(city, state)
+    return get_weather_coords(lat, lon, my_key)
 
 
 
@@ -193,21 +124,24 @@ import json
 
 my_key = "cb89c37822875b5b47319c98f6cb1522"
 
-# Function to get live stock data for a symbol
-def get_weather(lat, lon, api_key):
-    url = "https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}"
+def get_weather_coords(lat, lon, api_key):
+    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=imperial"
     response = requests.get(url)
     data = response.json()
-    return data
-    # if response.status_code == 200:
-    #     data = response.json()
-    #     return data
-    # else:
-    #     return None
+    return {
+        "temp": data["main"]["temp"],
+        "feels like": data["main"]["feels_like"],
+        "high": data["main"]["temp_max"],
+        "low": data["main"]["temp_min"],
+        "wind speed": data["wind"]["speed"],
+        "condition": data["weather"][0]["main"],
+        "humidity": data["main"]["humidity"]
+    }
 
 
-coords = get_coords("portland","me")
-weather = get_weather(coords[0],coords[1],my_key)
+print(get_weather("portland", "me"))
+# coords = get_coords("portland","me")
+# weather = get_weather(coords[0],coords[1],my_key)
 
-print(weather)
+# print(weather)
 
