@@ -98,7 +98,7 @@ def get_coords(city, state):
             lon = float(name[5])
     return lat, lon
 
-# API
+# Process Request
 API_KEY = "cb89c37822875b5b47319c98f6cb1522"
 
 def get_weather(city,state):
@@ -110,16 +110,56 @@ def get_weather_coords(lat, lon, api_key):
     url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=imperial"
     response = requests.get(url)
     data = response.json()
+    TEMP_UNIT = " ˚F"
+    WIND_UNIT = " mph"
     return {
-        "temp": data["main"]["temp"],
-        "feels like": data["main"]["feels_like"],
-        "high": data["main"]["temp_max"],
-        "low": data["main"]["temp_min"],
-        "wind speed": data["wind"]["speed"],
-        "condition": data["weather"][0]["main"],
+        "temp": str(data["main"]["temp"])+TEMP_UNIT,
+        "feels like": str(data["main"]["feels_like"])+TEMP_UNIT,
+        "high": str(data["main"]["temp_max"])+TEMP_UNIT,
+        "low": str(data["main"]["temp_min"])+TEMP_UNIT,
+        "wind speed": str(data["wind"]["speed"])+WIND_UNIT,
+        "condition": data["weather"][0]["main"].lower(),
         "humidity": data["main"]["humidity"]
     }
+def parse_request(request):
+    # in the future we'll parse the request using a cfg file and such, but right
+    # now I just want the scaffolding in place so I'm doing it this way
+    # This is the function I expect to change the most in finishing the implementation
+    return {
+        "city": request[0],
+        "state": request[1],
+        "feature": request[2]
+    }
+
+# Response
+FULL_NAME = {
+    "temp": "temperature",
+    "feels like": "feels like",
+    "high": "high for today",
+    "low": "low for today",
+    "wind speed": "wind speed",
+    "humidity": "humidity",
+    "condition": "conditions"
+}
+def generate_response(city, state, feature, data):
+    # TODO: figure out a better way to phrase the response for "conditions"
+    # and also the other responses
+    copula = "is" if feature != "condition" else "are"
+    return f"The {FULL_NAME[feature]} in {city}, {state} {copula} {data[feature]}"
+
+
+# This is the function the driver will use to process weather requests.
+# It takes in (or will when we're done) the string inputted by the user and returns
+# a string for the program to respond with. We might break up the input into multiple
+# prompts (what city, what state, etc.) in which case this may change a bit, depending
+# on how that works.
+def process_request(request):
+    parsed = parse_request(request)
+    city = parsed["city"]
+    state = parsed["state"]
+
+    return generate_response(city, state, parsed["feature"], get_weather(city, state))
 
 
 # Test
-print(get_weather("portland", "me"))
+print(process_request(["Portland", "Maine", "condition"]))
