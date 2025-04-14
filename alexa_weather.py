@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup as soup
 import requests
 
-# For Inputs
+# Finding coordinates from city, state
 states = {
     "al": "Alabama",
     "ak": "Alaska",
@@ -96,34 +96,16 @@ def get_coords(city, state):
             lon = lon * (-1)
         elif "°E" in item:
             lon = float(name[5])
-    # print(lat)
-    # print(long)
-
-   
     return lat, lon
+
+# API
+API_KEY = "cb89c37822875b5b47319c98f6cb1522"
 
 def get_weather(city,state):
     city = city_fix(city)
     state = state_abbrev(state)
     lat, lon = get_coords(city, state)
-    return get_weather_coords(lat, lon, my_key)
-
-
-
-
-
-
-
-# API
-
-import requests
-import json
-
-
-
-
-my_key = "cb89c37822875b5b47319c98f6cb1522"
-
+    return get_weather_coords(lat, lon, API_KEY)
 def get_weather_coords(lat, lon, api_key):
     url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=imperial"
     response = requests.get(url)
@@ -139,9 +121,5 @@ def get_weather_coords(lat, lon, api_key):
     }
 
 
+# Test
 print(get_weather("portland", "me"))
-# coords = get_coords("portland","me")
-# weather = get_weather(coords[0],coords[1],my_key)
-
-# print(weather)
-
